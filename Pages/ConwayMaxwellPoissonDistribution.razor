@@ -1,0 +1,134 @@
+﻿@page "/ConwayMaxwellPoissonDistribution"
+
+@inject IJSRuntime JSRuntime
+
+<div style="float: left;">
+    <dl>
+        <dt>Distribution Mean:</dt>
+        <dd>@mean</dd>
+        <dt>Distribution Variance:</dt>
+        <dd>@variance</dd>
+        <dt>Time to generate data (ms):</dt>
+        <dd>@TimeToGenerateData</dd>
+        <dt>Lambda:</dt>
+        <dd>
+            <input id="lambdaInput" type="range" min="1" max="10" step="1"
+                   value="@this.Lambda" @onchange="@OnLambdaUpdated" oninput="lambdaOutput.value=lambdaInput.value" />
+            <output name="lambdaOutput" id="lambdaOutput" for="lambdaInput">@this.Lambda</output>
+        </dd>
+        <dt>Samples Size:</dt>
+        <dd>
+            <input id="samplesSizeInput" type="range" class="" min="250" max="20000" step="250"
+                   value="@this.SamplesSize" @onchange="@OnSamplesSizeUpdated" oninput="samplesSizeOutput.value=samplesSizeInput.value" />
+            <output name="samplesSizeOutput" id="samplesSizeOutput" for="samplesSizeInput">@this.SamplesSize</output>
+        </dd>
+        <dt>Nu:</dt>
+        <dd>
+            <input id="nuInput" type="range" min="4" max="40" step="2"
+                   value="@this.Nu" @onchange="@OnNuUpdated" oninput="nuOutput.value=nuInput.value/10" />
+            <output name="nuOutput" id="nuOutput" for="nuInput">@(this.Nu/10)</output>
+        </dd>
+    </dl>
+</div>
+
+<p />
+<!-- Create a div where the graph will take place -->
+<div id="my_dataviz" style="clear: both;">
+
+</div>
+
+
+@code {
+
+    public double Lambda { get; set; }
+    public double Nu { get; set; }
+    public int SamplesSize { get; set; }
+    public int[] SamplesArray { get; set; }
+    public double TimeToGenerateData { get; set; }
+
+    public class Data
+    {
+        public double Y;
+    }
+
+    double mean, variance;
+
+    protected override Task OnParametersSetAsync()
+    {
+        this.Lambda = 2;
+        this.Nu = 10;
+        this.SamplesSize = 1000;
+        this.TimeToGenerateData = 0.0;
+
+        this.GenerateDistribution();
+
+        return base.OnParametersSetAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await RenderChart();
+        }
+        else
+        {
+            this.GenerateDistribution();
+            await RenderChart();
+        }
+    }
+
+    private void GenerateDistribution()
+    {
+        var dateTime = DateTime.Now;
+
+        // create a parametrized distribution instance
+        var poisson = new MathNet.Numerics.Distributions.ConwayMaxwellPoisson(this.Lambda, (double) this.Nu/10);
+
+        //// distribution properties
+        mean = Math.Round(poisson.Mean, 2, MidpointRounding.AwayFromZero);
+        variance = Math.Round(poisson.Variance, 2, MidpointRounding.AwayFromZero);
+        //entropy = poisson.Entropy;
+        //this.Probability = poisson.P;
+
+        //double c = binomaial.CumulativeDistribution(0.6); // CDF
+
+        // non-uniform number sampling
+        this.SamplesArray = poisson.Samples().Take(this.SamplesSize).ToArray();
+
+        var dateTimeElapsed = (DateTime.Now - dateTime).TotalMilliseconds;
+        this.TimeToGenerateData = dateTimeElapsed;
+    }
+
+    private async Task RenderChart()
+    {
+        await JSRuntime.InvokeVoidAsync("createD3SvgObject", this.SamplesArray, mean, "Conway-Maxwell Sample Distribution");
+    }
+
+    private void OnLambdaUpdated(ChangeEventArgs e)
+    {
+        if (int.TryParse((string)e.Value, out var index) && index >= 0)
+        {
+            this.Lambda = index;
+            this.GenerateDistribution();
+        }
+    }
+
+    private void OnNuUpdated(ChangeEventArgs e)
+    {
+        if (int.TryParse((string)e.Value, out var index) && index >= 0)
+        {
+            this.Nu = index;
+            this.GenerateDistribution();
+        }
+    }
+
+    private void OnSamplesSizeUpdated(ChangeEventArgs e)
+    {
+        if (int.TryParse((string)e.Value, out var index) && index >= 0)
+        {
+            this.SamplesSize = index;
+            this.GenerateDistribution();
+        }
+    }
+}

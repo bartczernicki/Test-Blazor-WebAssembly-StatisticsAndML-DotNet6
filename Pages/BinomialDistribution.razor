@@ -1,0 +1,129 @@
+﻿@page "/BinomialDistribution"
+
+@inject IJSRuntime JSRuntime
+
+<div style="float: left;">
+    <dl>
+        <dt>Distribution Mean:</dt>
+        <dd>@this.Mean</dd>
+        <dt>Distribution Variance:</dt>
+        <dd>@variance</dd>
+        <dt>Time to generate data (ms):</dt>
+        <dd>@TimeToGenerateData</dd>
+        <dt>Probability:</dt>
+        <dd>
+            <input id="probabilityInput" type="range" min="0" max="100" step="5"
+                   value="@this.Probability" @onchange="@OnProbabilityUpdated" oninput="probabilityOutput.value=probabilityInput.value/100" />
+            <output name="probabilityOutput" id="probabilityOutput" for="probabilityInput">@(this.Probability/100)</output>
+        </dd>
+        <dt>Samples Size:</dt>
+        <dd>
+            <input id="samplesSizeInput" type="range" class="" min="250" max="20000" step="250"
+                   value="@this.SamplesSize" @onchange="@OnSamplesSizeUpdated" oninput="samplesSizeOutput.value=samplesSizeInput.value" />
+            <output name="samplesSizeOutput" id="samplesSizeOutput" for="samplesSizeInput">@this.SamplesSize</output>
+        </dd>
+        <dt>Trials:</dt>
+        <dd>
+            <input id="trialsInput" type="range" class="" min="0" max="500" step="10"
+                   value="@this.Trials" @onchange="@OnTrialsUpdated" oninput="trialsOutput.value=trialsInput.value" />
+            <output name="trialsOutput" id="trialsOutput" for="probabilityInput">@this.Trials</output>
+        </dd>
+    </dl>
+</div>
+
+<p />
+<!-- Create a div where the graph will take place -->
+<div id="my_dataviz" style="clear: both;">
+
+</div>
+
+
+@code {
+
+    public double Mean { get; set; }
+
+    public double Probability { get; set; }
+    public int Trials { get; set; }
+
+    public int SamplesSize { get; set; }
+    public int[] SamplesArray { get; set; }
+    public double TimeToGenerateData { get; set; }
+
+    public class Data
+    {
+        public double Y;
+    }
+
+    public List<Data> samples = new List<Data>(1000);
+    double variance;
+
+    protected override Task OnParametersSetAsync()
+    {
+        this.Probability = 60;
+        this.Trials = 10;
+        this.SamplesSize = 1000;
+        this.TimeToGenerateData = 0.0;
+
+        this.GenerateDistribution();
+
+        return base.OnParametersSetAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await this.RenderChart();
+    }
+
+    protected void GenerateDistribution()
+    {
+        var dateTime = DateTime.Now;
+
+        // create a parametrized distribution instance
+        var scaledProbability = (double)this.Probability / 100;
+        var binomaial = new MathNet.Numerics.Distributions.Binomial(scaledProbability, this.Trials);
+
+        //// distribution properties
+        this.Mean = Math.Round(binomaial.Mean, 2, MidpointRounding.AwayFromZero);
+        variance = Math.Round(binomaial.Variance, 2, MidpointRounding.AwayFromZero);
+
+        //double c = binomaial.CumulativeDistribution(0.6); // CDF
+
+        // non-uniform number sampling
+        this.SamplesArray = binomaial.Samples().Take(this.SamplesSize).ToArray();
+
+        var dateTimeElapsed = (DateTime.Now - dateTime).TotalMilliseconds;
+        this.TimeToGenerateData = dateTimeElapsed;
+    }
+
+    private void OnProbabilityUpdated(ChangeEventArgs e)
+    {
+        if (int.TryParse((string)e.Value, out var index) && index >= 0)
+        {
+            this.Probability = index;
+            this.GenerateDistribution();
+        }
+    }
+
+    private void OnTrialsUpdated(ChangeEventArgs e)
+    {
+        if (int.TryParse((string)e.Value, out var index) && index >= 0)
+        {
+            this.Trials = index;
+            this.GenerateDistribution();
+        }
+    }
+
+    private void OnSamplesSizeUpdated(ChangeEventArgs e)
+    {
+        if (int.TryParse((string)e.Value, out var index) && index >= 0)
+        {
+            this.SamplesSize = index;
+            this.GenerateDistribution();
+        }
+    }
+
+    private async Task RenderChart()
+    {
+        await JSRuntime.InvokeVoidAsync("createD3SvgObject", this.SamplesArray, this.Mean, "Binomial Sample Distribution");
+    }
+}

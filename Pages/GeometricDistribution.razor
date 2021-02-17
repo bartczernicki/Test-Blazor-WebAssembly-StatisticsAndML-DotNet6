@@ -1,0 +1,107 @@
+﻿@page "/GeometricDistribution"
+
+@inject IJSRuntime JSRuntime
+
+<div style="float: left;">
+    <dl>
+        <dt>Distribution Mean:</dt>
+        <dd>@mean</dd>
+        <dt>Distribution Variance:</dt>
+        <dd>@variance</dd>
+        <dt>Time To generate data (ms):</dt>
+        <dd>@TimeToGenerateData</dd>
+        <dt>Probability:</dt>
+        <dd>
+            <input id="probabilityInput" type="range" min="0" max="100" step="5"
+                   value="@this.Probability" @onchange="@OnProbabilityUpdated" oninput="probabilityOutput.value=probabilityInput.value/100" />
+            <output name="probabilityOutput" id="probabilityOutput" for="probabilityInput">@(this.Probability/100)</output>
+        </dd>
+        <dt>Samples Size:</dt>
+        <dd>
+            <input id="samplesSizeInput" type="range" class="" min="250" max="20000" step="250"
+                   value="@this.SamplesSize" @onchange="@OnSamplesSizeUpdated" oninput="samplesSizeOutput.value=samplesSizeInput.value" />
+            <output name="samplesSizeOutput" id="samplesSizeOutput" for="samplesSizeInput">@this.SamplesSize</output>
+        </dd>
+    </dl>
+</div>
+
+<p />
+<!-- Create a div where the graph will take place -->
+<div id="my_dataviz" style="clear: both;"></div>
+
+
+@code {
+
+    public double Probability { get; set; }
+    public int SamplesSize { get; set; }
+    public int[] SamplesArray { get; set; }
+    public double TimeToGenerateData { get; set; }
+
+    public class Data
+    {
+        public double Y;
+    }
+
+    public List<Data> samples = new List<Data>(1000);
+    double mean, variance, entropy;
+
+    protected override Task OnParametersSetAsync()
+    {
+        this.Probability = 60;
+        this.SamplesSize = 1000;
+        this.TimeToGenerateData = 0.0;
+
+        this.GenerateDistribution();
+
+        return base.OnParametersSetAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await this.RenderChart();
+    }
+
+    private void GenerateDistribution()
+    {
+        var dateTime = DateTime.Now;
+
+        // create a parametrized distribution instance
+        var scaledProbability = (double)this.Probability / 100;
+        var geometric = new MathNet.Numerics.Distributions.Geometric(scaledProbability);
+
+        //// distribution properties
+        mean = Math.Round(geometric.Mean, 2, MidpointRounding.AwayFromZero);
+        variance = Math.Round(geometric.Variance, 2, MidpointRounding.AwayFromZero);
+        entropy = geometric.Entropy;
+
+        //double c = geometric.CumulativeDistribution(0.6); // CDF
+
+        this.SamplesArray = geometric.Samples().Take(this.SamplesSize).ToArray();
+
+        var dateTimeElapsed = (DateTime.Now - dateTime).TotalMilliseconds;
+        this.TimeToGenerateData = dateTimeElapsed;
+    }
+
+    private void OnProbabilityUpdated(ChangeEventArgs e)
+    {
+        if (int.TryParse((string)e.Value, out var index) && index >= 0)
+        {
+            this.Probability = index;
+            this.GenerateDistribution();
+        }
+    }
+
+    private void OnSamplesSizeUpdated(ChangeEventArgs e)
+    {
+        if (int.TryParse((string)e.Value, out var index) && index >= 0)
+        {
+            this.SamplesSize = index;
+            this.GenerateDistribution();
+        }
+    }
+
+    private async Task RenderChart()
+    {
+        await JSRuntime.InvokeVoidAsync("createD3SvgObject", this.SamplesArray, mean, "Geometric Sample Distribution");
+    }
+}

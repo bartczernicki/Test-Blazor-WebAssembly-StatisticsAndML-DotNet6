@@ -1,0 +1,99 @@
+﻿@page "/PerformanceTestRun"
+
+<small class="form-text text-muted">
+    Select <b>Start Performance Test</b> to begin a performance test, which should run betweeen 6-20 seconds (depending on the device CPU).
+</small>
+<small class="form-text text-muted">
+    Contrast this performance test (with the same exact code) with the .NET Core 3.x implementation:
+    <a href="https://statisticsandblazordotnetcore3.azureedge.net/PerformanceTestRun" target="_blank">.NET Core 3.x Performance Test</a>
+</small>
+<br />
+
+<button class="btn btn-primary" @onclick="StartPerformanceTest">Start Performance Test</button>
+<button class="btn btn-primary" @onclick="CancelPerformanceTest">Cancel Performance Test</button>
+
+@if (performanceTests.Count > 0)
+{
+    <div style=@((cancelPerformanceTest) ? "color: red;" : "color:blue;")>@performanceRunMessage</div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Test Name</th>
+                <th>Time (ms)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var performanceResult in performanceTests)
+            {
+                <tr>
+                    <td>@performanceResult.ID</td>
+                    <td>@performanceResult.GetTestName()</td>
+                    <td>@performanceResult.TestDuration</td>
+                </tr>
+            }
+            <tr>
+                <th>@("Total Tests: " + performanceTests.Count.ToString())</th>
+                <th>All Tests</th>
+                <th>@performanceTests.Sum(a => a.TestDuration).ToString()</th>
+            </tr>
+        </tbody>
+    </table>
+}
+
+@code {
+
+    private string performanceRunMessage = "Running Test...";
+    private bool cancelPerformanceTest = false;
+
+    List<PerformanceTest> performanceTests = new List<PerformanceTest>();
+
+    private async Task StartPerformanceTest()
+    {
+        this.performanceTests = new List<PerformanceTest>();
+        List<PerformanceTest> performanceTestHarness = new List<PerformanceTest>();
+
+        performanceTestHarness.AddRange(new List<PerformanceTest>
+    {
+            new PerformanceTest { ID = 1, DistributionName = "Binomial", SamplesNumber = 250, TrialsNumber = 250 },
+            new PerformanceTest { ID = 2, DistributionName = "Binomial", SamplesNumber = 500, TrialsNumber = 500 },
+            new PerformanceTest { ID = 3, DistributionName = "Binomial", SamplesNumber = 1000, TrialsNumber = 1000 },
+            new PerformanceTest { ID = 4, DistributionName = "Geometric", SamplesNumber = 100000, TrialsNumber = 0 },
+            new PerformanceTest { ID = 5, DistributionName = "Geometric", SamplesNumber = 500000, TrialsNumber = 0 },
+            new PerformanceTest { ID = 6, DistributionName = "Geometric", SamplesNumber = 1000000, TrialsNumber = 0 },
+            new PerformanceTest { ID = 7, DistributionName = "Poisson", SamplesNumber = 500000, TrialsNumber = 0 },
+            new PerformanceTest { ID = 8, DistributionName = "Poisson", SamplesNumber = 1000000, TrialsNumber = 0 },
+            new PerformanceTest { ID = 9, DistributionName = "Normal", SamplesNumber = 500000, TrialsNumber = 0 },
+            new PerformanceTest { ID = 10, DistributionName = "Normal", SamplesNumber = 1000000, TrialsNumber = 0 }
+        });
+
+        foreach (var performanceTest in performanceTestHarness)
+        {
+            if (this.cancelPerformanceTest != true)
+            {
+                performanceTest.TestDuration = performanceTest.TakeSamples();
+                performanceTests.Add(performanceTest);
+                await Task.Delay(1000); // Await Delay to give control back to user to cancel
+                base.StateHasChanged();
+            }
+        };
+
+        if (!this.cancelPerformanceTest)
+        {
+            this.performanceRunMessage = "Completed Run";
+        }
+    }
+
+    private void CancelPerformanceTest()
+    {
+        this.cancelPerformanceTest = true;
+        this.performanceRunMessage = "Cancelled Run";
+    }
+
+    private void ClearRuns()
+    {
+        this.cancelPerformanceTest = true;
+        this.performanceRunMessage = "Cancelled Run";
+    }
+}
