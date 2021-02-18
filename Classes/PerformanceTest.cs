@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using MathNet.Numerics;
 
-namespace Test_Blazor_WebAssembly_StatisticsAndML_DotNet5
+namespace Test_Blazor_WebAssembly_StatisticsAndML_DotNet6
 {
     public class PerformanceTest
     {

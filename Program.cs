@@ -8,7 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace Test_Blazor_WebAssembly_StatisticsAndML_DotNet5
+namespace Test_Blazor_WebAssembly_StatisticsAndML_DotNet6
 {
     public class Program
     {

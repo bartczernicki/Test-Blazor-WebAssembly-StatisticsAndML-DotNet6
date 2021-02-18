@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <AssemblyName>TestBlazorWebAssemblyStatisticsAndMLDotNet5</AssemblyName>
-    <RootNamespace>Test-Blazor-WebAssembly-StatisticsAndML-DotNet5</RootNamespace>
+    <AssemblyName>TestBlazorWebAssemblyStatisticsAndMLDotNet6</AssemblyName>
+    <RootNamespace>Test-Blazor-WebAssembly-StatisticsAndML-DotNet6</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
