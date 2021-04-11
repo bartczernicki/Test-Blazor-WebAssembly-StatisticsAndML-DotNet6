@@ -25,12 +25,21 @@ namespace Test_Blazor_WebAssembly_StatisticsAndML_DotNet6
             var dateTimeElapsed = 0.0;
             var dateTime = DateTime.Now;
 
+            //IEnumerable<int> generatedSamplesEnumerable = Enumerable.Empty<int>();
+            //IEnumerable<double> generatedSamplesDoubleEnumerable = Enumerable.Empty<double>();
+
             if (this.DistributionName == "Binomial")
             {
                 fullName = $"{DistributionName}-Samples:{SamplesNumber}-Trials:{TrialsNumber}";
 
                 var binomaial = new MathNet.Numerics.Distributions.Binomial(0.5, this.TrialsNumber);
                 var generatedsamples = binomaial.Samples().Take(SamplesNumber).ToArray();
+
+                //generatedSamplesEnumerable = binomaial.Samples().Take(SamplesNumber);
+                //foreach (var item in generatedSamplesEnumerable)
+                //{
+                //    var test = item;
+                //}
             }
             else if (this.DistributionName == "Geometric")
             {
@@ -38,6 +47,12 @@ namespace Test_Blazor_WebAssembly_StatisticsAndML_DotNet6
 
                 var geometric = new MathNet.Numerics.Distributions.Geometric(0.5);
                 var generatedsamples = geometric.Samples().Take(SamplesNumber).ToArray();
+
+                //generatedSamplesEnumerable = geometric.Samples().Take(SamplesNumber);
+                //foreach (var item in generatedSamplesEnumerable)
+                //{
+                //    var test = item;
+                //}
             }
             else if (this.DistributionName == "Poisson")
             {
@@ -45,6 +60,12 @@ namespace Test_Blazor_WebAssembly_StatisticsAndML_DotNet6
 
                 var poisson = new MathNet.Numerics.Distributions.Poisson(0.5);
                 var generatedsamples = poisson.Samples().Take(SamplesNumber).ToArray();
+
+                //generatedSamplesEnumerable = poisson.Samples().Take(SamplesNumber);
+                //foreach (var item in generatedSamplesEnumerable)
+                //{
+                //    var test = item;
+                //}
             }
             else if (this.DistributionName == "Normal")
             {
@@ -52,6 +73,12 @@ namespace Test_Blazor_WebAssembly_StatisticsAndML_DotNet6
 
                 var normal = new MathNet.Numerics.Distributions.Normal(0.5, 2);
                 var generatedsamples = normal.Samples().Take(SamplesNumber).ToArray();
+
+                //generatedSamplesDoubleEnumerable = normal.Samples().Take(SamplesNumber);
+                //foreach(var item in generatedSamplesDoubleEnumerable)
+                //{
+                //    var test = item;
+                //}
             }
 
             dateTimeElapsed = (DateTime.Now - dateTime).TotalMilliseconds;
