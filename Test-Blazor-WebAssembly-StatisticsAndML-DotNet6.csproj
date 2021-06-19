@@ -5,13 +5,14 @@
     <AspNetCoreHostingModel>OutOfProcess</AspNetCoreHostingModel>
     <AssemblyName>TestBlazorWebAssemblyStatisticsAndMLDotNet6</AssemblyName>
     <RootNamespace>Test-Blazor-WebAssembly-StatisticsAndML-DotNet6</RootNamespace>
+	<RunAOTCompilation>true</RunAOTCompilation>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="MathNet.Numerics" Version="4.15.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.0-preview.4.21253.5" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.0-preview.4.21253.5" PrivateAssets="all" />
-    <PackageReference Include="System.Net.Http.Json" Version="6.0.0-preview.4.21253.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.0-preview.5.*" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.0-preview.5.*" PrivateAssets="all" />
+    <PackageReference Include="System.Net.Http.Json" Version="6.0.0-preview.5.*" />
   </ItemGroup>
 
   <ItemGroup>
